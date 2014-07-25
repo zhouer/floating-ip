@@ -11,10 +11,8 @@ class MainPage(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
 
         for p in Log.query(projection=["path"], distinct=True):
-            rs = Log.query(Log.path == p.path).order(-Log.access).fetch(1)
-            if rs:
-                r = rs[0]
-                self.response.write(r.path + "\n\tIP: " +  r.ip + "\n\tAccess: " + r.access.isoformat() + "\n\n")
+            r = Log.query(Log.path == p.path).order(-Log.access).get()
+            self.response.write(r.path + "\n\tIP: " +  r.ip + "\n\tAccess: " + r.access.isoformat() + "\n\n")
 
 class LogPage(webapp2.RequestHandler):
     def get(self, path):
