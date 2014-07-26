@@ -1,3 +1,4 @@
+import datetime
 import webapp2
 from google.appengine.ext import ndb
 
@@ -10,9 +11,11 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
 
+        now = datetime.datetime.now()
         for p in Log.query(projection=["path"], distinct=True):
             r = Log.query(Log.path == p.path).order(-Log.access).get()
-            self.response.write(r.path + "\n\tIP: " +  r.ip + "\n\tAccess: " + r.access.isoformat() + "\n\n")
+            diff = (now - r.access).seconds
+            self.response.write('%s\n\tIP: %s\n\tUpdate: %d seconds ago\n\n' % (r.path, r.ip, diff))
 
 class LogPage(webapp2.RequestHandler):
     def get(self, path):
