@@ -7,21 +7,27 @@ class Log(ndb.Model):
     path = ndb.StringProperty()
     ip = ndb.StringProperty()
 
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
 
         now = datetime.datetime.now()
         for p in Log.query(projection=["path"], distinct=True):
-            r = Log.query(Log.path == p.path).order(-Log.access).get()
-            diff = (now - r.access).seconds
-            self.response.write('%s\n\tIP: %s\n\tUpdate: %d seconds ago\n\n' % (r.path, r.ip, diff))
+            latest = Log.query(Log.path == p.path).order(-Log.access).get()
+            diff = (now - latest.access).seconds
+            self.response.write('%s\n\tIP: %s\n\tUpdate: %d seconds ago\n\n' % (latest.path, latest.ip, diff))
+
 
 class LogPage(webapp2.RequestHandler):
     def get(self, path):
-        if path == 'favicon.ico':
-            return
+        now = datetime.datetime.now()
+        latest = Log.query(Log.path == path).order(-Log.access).get()
 
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write(latest.ip)
+
+    def post(self, path):
         log = Log()
         log.path = path
         log.ip = self.request.remote_addr
@@ -29,6 +35,14 @@ class LogPage(webapp2.RequestHandler):
 
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write('Access %s from %s' % (path, self.request.remote_addr))
+
+    def delete(self, path):
+        keys = Log.query(Log.path == path).iter(keys_only=True)
+        ndb.delete_multi(keys)
+
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write('Remove all records of %s' % (path))
+
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
