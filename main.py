@@ -25,7 +25,10 @@ class LogPage(webapp2.RequestHandler):
         latest = Log.query(Log.path == path).order(-Log.access).get()
 
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write(latest.ip)
+        if latest:
+            self.response.write(latest.ip)
+        else:
+            self.response.write('No IP records')
 
     def post(self, path):
         log = Log()
