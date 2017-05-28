@@ -15,8 +15,7 @@ class MainPage(webapp2.RequestHandler):
         now = datetime.datetime.now()
         for p in Log.query(projection=["path"], distinct=True):
             latest = Log.query(Log.path == p.path).order(-Log.access).get()
-            diff = (now - latest.access).seconds
-            self.response.write('%s\n\tIP: %s\n\tUpdate: %d seconds ago\n\n' % (latest.path, latest.ip, diff))
+            self.response.write('%s\n\tIP: %s\n\tUpdate: %s\n\n' % (latest.path, latest.ip, latest.access))
 
 
 class LogPage(webapp2.RequestHandler):
